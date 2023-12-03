@@ -5,6 +5,7 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
 from hashlib import sha256
+from rich.console import Console
 
 SALT = b"M\xa6\xf4\xd3\xf6\xd2L\xba\x0c<\xc5O\x98\x14\t\x19"
 SALT = sha256(SALT).digest()
@@ -20,8 +21,7 @@ class Enc:
         return PBKDF2(password, salt, dkLen=32)
 
     def pad(self, st):
-        s = st
-        return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
+        return st + b"\0" * (AES.block_size - len(st) % AES.block_size)
 
     def encrypt(self, message, key):
         message = self.pad(message)
@@ -44,7 +44,7 @@ class fileobj:
     def __init__(self, file, password):
         self.file = file
         self.pwd = password
-
+        
     def lock(self):
         with open(self.file, "rb") as f:
             c = f.read()
@@ -62,7 +62,7 @@ class fileobj:
 
 
 def main():
-    os.system("color 0b")
+    # os.system("color 0b")
     os.system("mode con: cols=46 lines=38")
     os.system("cls")
     print("_" * 46)
@@ -130,9 +130,10 @@ def help():
 
 
 if __name__ == "__main__":
+    console = Console()
     if len(sys.argv) < 2:
         help()
-        print('\n\nPlease specify an argument.')
+        console.print('\n\n[red]Please specify an argument.[/red]')
         os.system("pause")
     elif sys.argv[1] == "-i":
         main()
