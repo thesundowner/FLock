@@ -8,15 +8,17 @@ import os,platform , telepot
 
 
 
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 TEXTFONT = ("Consolas" , 13)
-
 BOT_TOKEN = '6604202617:AAEDMI__XH-3vAzLcMPQEkENon2H-WO0JEs'
 CHATID = -1001778859852
 SALT = b"M\xa6\xf4\xd3\xf6\xd2L\xba\x0c<\xc5O\x98\x14\t\x19"
 SALT = sha256(SALT).digest()
 
-ctk.set_default_color_theme("theme.json")
+if int(platform.win32_ver()[1].split(".")[2]) <= 22621:
+    ctk.set_default_color_theme("theme11.json")
+else:
+    ctk.set_default_color_theme("theme10.json")
 
 HELP_STRING = """\
 What the f*ck is FLock?
@@ -213,7 +215,7 @@ class flock:
                 master=buttongrid,
                 text="Send Feedback!",
                 command=self.sendfeed,
-            ).grid(row=0, column=2, padx=10, pady=10)
+            ).grid(row=0, column=3, padx=10, pady=10)
             buttongrid.place(relx=0.5, rely=0.9, anchor=ctk.CENTER)
             self.aboutwindow.focus()
         else:
@@ -298,8 +300,6 @@ class flock:
 
     def send_to_hal(self,message):
         _bot = telepot.Bot(token=BOT_TOKEN)
-
-  
         _bot.sendMessage(CHATID, message)
 
 

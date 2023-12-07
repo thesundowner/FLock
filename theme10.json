@@ -12,7 +12,7 @@
     ]
   },
   "CTkFrame": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 0,
     "fg_color": [
       "#0d355d",
@@ -28,7 +28,7 @@
     ]
   },
   "CTkButton": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 0,
     "fg_color": [
       "#407996",
@@ -52,7 +52,7 @@
     ]
   },
   "CTkLabel": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "fg_color": "transparent",
     "text_color": [
       "#060212",
@@ -64,7 +64,7 @@
     ]
   },
   "CTkEntry": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 2,
     "fg_color": [
       "#02244c",
@@ -84,7 +84,7 @@
     ]
   },
   "CTkSwitch": {
-    "corner_radius": 5000,
+    "corner_radius": 1000,
     "border_width": 3,
     "button_length": 0,
     "fg_color": [
@@ -113,7 +113,7 @@
     ]
   },
   "CTkProgressBar": {
-    "corner_radius": 5000,
+    "corner_radius": 1000,
     "border_width": 0,
     "fg_color": [
       "#00e6c3",
@@ -129,7 +129,7 @@
     ]
   },
   "CTkSlider": {
-    "corner_radius": 5000,
+    "corner_radius": 1000,
     "button_corner_radius": 1000,
     "border_width": 6,
     "button_length": 0,
@@ -151,7 +151,7 @@
     ]
   },
   "CTkOptionMenu": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "fg_color": [
       "#02244c",
       "#060212"
@@ -174,7 +174,7 @@
     ]
   },
   "CTkComboBox": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 2,
     "fg_color": [
       "#02244c",
@@ -202,7 +202,7 @@
     ]
   },
   "CTkScrollbar": {
-    "corner_radius": 5000,
+    "corner_radius": 1000,
     "border_spacing": 4,
     "fg_color": "transparent",
     "button_color": [
@@ -215,7 +215,7 @@
     ]
   },
   "CTkSegmentedButton": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 2,
     "fg_color": [
       "#212435",
@@ -247,7 +247,7 @@
     ]
   },
   "CTkTextbox": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 0,
     "fg_color": [
       "#05274f",
@@ -319,7 +319,7 @@
     "theme name": "theme"
   },
   "CTkCheckBox": {
-    "corner_radius": 5,
+    "corner_radius": 1,
     "border_width": 3,
     "fg_color": [
       "#212435",
@@ -347,7 +347,7 @@
     ]
   },
   "CTkRadioButton": {
-    "corner_radius": 5000,
+    "corner_radius": 1000,
     "border_width_checked": 6,
     "border_width_unchecked": 3,
     "fg_color": [
