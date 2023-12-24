@@ -1,24 +1,19 @@
 import customtkinter as ctk
-from tkinter import messagebox, filedialog, StringVar ,TkVersion
-from Crypto import Random
-from Crypto.Cipher import AES
-from Crypto.Protocol.KDF import PBKDF2
+from tkinter import messagebox, filedialog, StringVar, TkVersion
+import os, platform, telepot
 from hashlib import sha256
-import os,platform , telepot
+import pyAesCrypt
 
-
-
-VERSION = '1.1.0'
-TEXTFONT = ("Consolas" , 13)
-BOT_TOKEN = '6604202617:AAEDMI__XH-3vAzLcMPQEkENon2H-WO0JEs'
-CHATID = -1001778859852
-SALT = b"M\xa6\xf4\xd3\xf6\xd2L\xba\x0c<\xc5O\x98\x14\t\x19"
-SALT = sha256(SALT).digest()
+ctk.set_appearance_mode('dark')
 
 if int(platform.win32_ver()[1].split(".")[2]) <= 22621:
     ctk.set_default_color_theme("theme11.json")
 else:
     ctk.set_default_color_theme("theme10.json")
+
+VERSION = "2.0.1"
+FILE_LIMIT = 64 * 1024
+TEXTFONT = ("Consolas", 13)
 
 HELP_STRING = """\
 What the f*ck is FLock?
@@ -37,9 +32,9 @@ ENCRYPTION
 There are certain things that are needed to be considered before
 encrypting/decrypting:
 
-1. Passwords with only whitespaces(or spaces) are allowed. 
-2. If you don't use the right password during decryption, it will render 
-   the file unreadable after you use the right password afterwards. This 
+1. Passwords with only whitespaces(or spaces) are not allowed.
+2. If you don't use the right password during decryption, it will render
+   the file unreadable after you use the right password afterwards. This
    will be fixed on later versions.
 3. There's currently only one salt hash for all encrypted files. This will
    be fixed by using a unique salt hash on later versions. Any file locked
@@ -99,37 +94,32 @@ Windows {platform.win32_ver()[1]} {platform.win32_edition()}
 {platform.processor()}
 """
 
-class Enc:
-    def __init__(self, password):
-        password = str(password)
-        password = sha256(password.encode("utf-8")).hexdigest()
-        self.key = self.gen_key(password, SALT)
 
-    def gen_key(self, password, salt):
-        return PBKDF2(password, salt, dkLen=32)
+class Crypt:
+    def __init__(self, password: str, buffer_size: int = 64) -> None:
+        self.password = self.hash_salt(password)
+        self.buffer_size = buffer_size * 1024
 
-    def pad(self, st):
-        return st + b"\0" * (AES.block_size - len(st) % AES.block_size)
+    def encrypt(self, file_name: str):
+        encrypted_name = file_name + ".aes"
+        pyAesCrypt.encryptFile(
+            file_name, encrypted_name, self.password, self.buffer_size
+        )
 
-    def encrypt(self, message, key):
-        message = self.pad(message)
-        iv = Random.new().read(AES.block_size)
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        return iv + cipher.encrypt(message)
+    def decrypt(self, file_name: str):
+        decrypted_name = file_name.removesuffix(".aes")
+        pyAesCrypt.decryptFile(
+            file_name, f"{decrypted_name}", self.password, self.buffer_size
+        )
 
-    def decrypt(self, ciphertext, key):
-        try:
-            iv = ciphertext[: AES.block_size]
-            cipher = AES.new(key, AES.MODE_CBC, iv)
-            otext = cipher.decrypt(ciphertext[AES.block_size :])
-            return otext.rstrip(b"\0")
-        except ValueError as err:
-            print(type(err).__name__)
-            return
+    def hash_salt(self, password: str) -> bytes:
+        SALT = b"M\xa6\xf4\xd3\xf6\xd2L\xba\x0c<\xc5O\x98\x14\t\x19"
+        password = password.encode("utf-8")
+        return sha256(SALT + password).hexdigest()
 
 
-class flock:
-    def __init__(self):
+class FLock:
+    def __init__(self) -> None:
         self.root = ctk.CTk()
         self.root.title("FLock")
         self.root.geometry("550x350")
@@ -160,7 +150,96 @@ class flock:
         self.decryptwindow = None
         self.pathvar = StringVar()
 
-        self.path_label = ctk.CTkLabel(master=self.root,textvariable=self.pathvar)
+        self.path_label = ctk.CTkLabel(master=self.root, textvariable=self.pathvar)
+
+    def show_size_warning():
+        pass
+
+    def encryptfile(self):
+        try:
+            file = filedialog.askopenfile("rb+")
+            filepath = os.path.abspath(file.name)
+        except:
+            return
+        self.password_dialog = ctk.CTkInputDialog(
+            text="Please input the password.", title="Encrypt file"
+        )
+
+        _pwd = self.password_dialog.get_input()
+        if not _pwd or " " in _pwd:
+            return
+        self.confirmation_dialog = ctk.CTkInputDialog(
+            text=f"Please input the full name of the file\n'{os.path.basename(file.name)}'",
+            title="Confirm encryption",
+        )
+
+        if self.confirmation_dialog.get_input() == os.path.basename(file.name):
+            _c = Crypt(_pwd)
+            try:
+                if os.path.getsize(filepath) >= (FILE_LIMIT):
+                    messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.")
+
+                _c.encrypt(filepath)
+                file.close()
+                os.remove(filepath)
+                messagebox.showinfo(
+                    title="FLock",
+                    message=f'Encryption successful.\nThe encrypted file is "{filepath}.aes"',
+                )
+            except Exception as e:
+                messagebox.showerror(title="Error", message=f"An error occured:\n{e}")
+                return
+        else:
+            messagebox.showerror(
+                title="FLock", message="The input does not match the filename."
+            )
+            return
+
+    def decryptfile(self):
+        try:
+            file = filedialog.askopenfile(
+                mode="rb+", filetypes=[("Encrypted files", "*.aes")]
+            )
+            filepath = os.path.abspath(file.name)
+        except:
+            return
+        self.password_dialog = ctk.CTkInputDialog(
+            text="Please input the password.", title="Decrypt file"
+        )
+
+        _pwd = self.password_dialog.get_input()
+        if not _pwd:
+            return
+
+        self.confirmation_dialog = ctk.CTkInputDialog(
+            text=f"Please input the full name of the file\n'{os.path.basename(file.name)}'",
+            title="Confirm encryption",
+        )
+        if self.confirmation_dialog.get_input() == os.path.basename(file.name):
+            if not messagebox.askyesno(
+                title="Confirm decryption",
+                message="Are you sure it's the right password and the right file?",
+            ):
+                return
+            else:
+                try:
+                    if os.path.getsize(filepath) >= FILE_LIMIT:
+                        messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.")
+                    _c = Crypt(_pwd)
+                    _c.decrypt(filepath)
+                    file.close()
+                    os.remove(filepath)
+                    messagebox.showinfo(title="FLock", message="Decryption successful.")
+                except Exception as e:
+                    messagebox.showerror(
+                        title="Error", message=f"An error occured:\n{e}"
+                    )
+                    return
+        else:
+            messagebox.showwarning(
+                title="FLock",
+                message="The input does not match the filename. Please try again.",
+            )
 
     def help(self):
         if self.helpwindow is None or not self.helpwindow.winfo_exists():
@@ -169,11 +248,11 @@ class flock:
             self.helpwindow.geometry("600x475+1096+90")
             self.helpwindow.title("Help")
             self.textbox = ctk.CTkTextbox(
-                master=self.helpwindow, width=650, height=400, font=TEXTFONT 
+                master=self.helpwindow, width=650, height=400, font=TEXTFONT
             )
             self.textbox.insert("1.0", HELP_STRING)
             self.textbox.pack()
-            self.textbox.configure(state=ctk.DISABLED )
+            self.textbox.configure(state=ctk.DISABLED)
             self.helpwindow.focus()
             self.destroy_button = ctk.CTkButton(
                 master=self.helpwindow,
@@ -193,10 +272,7 @@ class flock:
             self.textbox = ctk.CTkTextbox(
                 master=self.aboutwindow, width=650, height=550, font=TEXTFONT
             )
-            self.textbox.insert(
-                "1.0",
-                ABOUT_STRING    
-            )
+            self.textbox.insert("1.0", ABOUT_STRING)
             self.textbox.pack()
             self.textbox.configure(state=ctk.DISABLED)
             self.aboutwindow.focus()
@@ -211,102 +287,19 @@ class flock:
                 text="View license",
                 command=lambda: os.system("start notepad.exe LICENSE"),
             ).grid(row=0, column=2, padx=10, pady=10)
-            self.destroy_button = ctk.CTkButton(
-                master=buttongrid,
-                text="Send Feedback!",
-                command=self.sendfeed,
-            ).grid(row=0, column=3, padx=10, pady=10)
+
             buttongrid.place(relx=0.5, rely=0.9, anchor=ctk.CENTER)
             self.aboutwindow.focus()
         else:
             self.aboutwindow.focus()
 
-
-    def sendfeed(self):
-        dialog = ctk.CTkInputDialog(text="Please write us your comments!" , title="Feedback and comments")
-        message = dialog.get_input()
-        if not message:
-            return
-        
-        try:
-            self.send_to_hal(message)
-            messagebox.showinfo(title="FLock" , message="Comment sent!")
-        except Exception as e:
-            messagebox.showerror(title='Error' , message=f"{e}")
-
-    def decryptfile(self):
-        try:
-            file = filedialog.askopenfile(mode="rb")
-            filepath = os.path.abspath(file.name)
-        except:
-            pass
-        self.password_dialog = ctk.CTkInputDialog(text="Please input the password." , title="Decrypt file")
-        
-        _pwd = self.password_dialog.get_input()
-        if not _pwd:
-            return
-        
-        self.confirmation_dialog = ctk.CTkInputDialog(text=f"Please input the full name of the file\n'{os.path.basename(file.name)}'" , title="Confirm encryption")
-        
-        if self.confirmation_dialog.get_input() == os.path.basename(file.name):
-
-
-            if not messagebox.askyesno(title="Confirm decryption" , message="Are you sure it's the right password and the right file?"):
-                    return
-            else:
-                    _enc = Enc(_pwd)
-                    _contents = file.read()
-                    _denc_contents = _enc.decrypt(_contents , _enc.key)
-                    try:
-                        with open(filepath , 'wb') as f:
-                            f.write(_denc_contents)
-                    except PermissionError:
-                        messagebox.showerror(title="Error", message="Isufficent Permissions to encrypt this file. The process will be terminated.")
-                        return
-                    messagebox.showinfo(title="Info" , message="Decryption successful.")
-                    file.close()
-        else:
-            messagebox.showwarning(title="FLock" , message="The input does not match the filename. Please try again.")
-
-    def encryptfile(self):
-        try:
-            file = filedialog.askopenfile(mode="rb")
-            filepath = os.path.abspath(file.name)
-        except:
-            pass
-        self.password_dialog = ctk.CTkInputDialog(text="Please input the password." , title="Encrypt file")
-        
-        _pwd = self.password_dialog.get_input()
-        if not _pwd:
-            return
-
-        self.confirmation_dialog = ctk.CTkInputDialog(text=f"Please input the full name of the file\n'{os.path.basename(file.name)}'" , title="Confirm encryption")
-
-        if self.confirmation_dialog.get_input() == os.path.basename(file.name):
-            _enc = Enc(_pwd)
-            _contents = file.read()
-            _enc_contents = _enc.encrypt(_contents , _enc.key)
-            try:
-                with open(filepath , "wb") as f:
-                    f.write(_enc_contents)
-            except PermissionError:
-                messagebox.showerror(title="Error", message="Isufficent Permissions to encrypt this file. The process will be terminated.")
-                return
-            
-            messagebox.showinfo(title="Info" , message="Encryption successful.")
-            file.close()
-        else:
-            messagebox.showwarning(title="FLock" , message="The input does not match the filename. Please try again.")
-
-    def send_to_hal(self,message):
-        _bot = telepot.Bot(token=BOT_TOKEN)
-        _bot.sendMessage(CHATID, message)
-
-
     def run(self):
         self.root.mainloop()
 
 
+if __name__ == "__main__":
+    flock = FLock()
+    flock.run()
 
 
-flock().run()
+# end main
