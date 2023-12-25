@@ -1,15 +1,12 @@
 # What the f*ck is FLock?
 
-FLock is a program that lets you safely encrypt files. It uses the SHA256 
+FLock is a program that lets you safely encrypt / decrypt files. It uses the SHA256 
 hashing and AES256 encryption algorithms. so Its the safest file 
 encryption program you can find. And it's the most dangerous thing that 
 can happen to your precious files if you aren't careful.
 
 
-# HOW TO ENCRYPT/DECRYPT FILES?
-
-
-## ENCRYPTION
+## HOW TO ENCRYPT/DECRYPT FILES?
 
 There are certain things that are needed to be considered before
 encrypting/decrypting:
@@ -34,9 +31,18 @@ encrypting/decrypting:
 ### Steps to Decrypt a file:
 
 1. At the main menu, click on "Decrypt file."
-2. Select the file you want to decrypt.
+2. Select the file you want to decrypt. (ends with ".flk")
 3. Input the password.
 4. Write the name of the file for  confirmation.
 5. Click on "Yes" if you are sure that's the right file and correct password.
 
-### DO NOT decrypt a file which is not encrypted. It will CORRUPT the entire file!
+### WARNING: DO NOT decrypt a file which is not encrypted. It will CORRUPT the entire file!
+
+
+## Setup and Install
+
+There are two options. Either wait for the pre-compiled setups i make or Just install Python and continue there. If you want to convert it into an excecutable, I've made a setup script to make things easier.
+
+Run `setup.py` assuming you've already installed the required modules using pip. If you, somehow don't know how to do it, run `python -m pip install -r requirements.txt` after you opened a terminal on the project.
+
+

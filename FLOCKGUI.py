@@ -4,15 +4,15 @@ import os, platform, telepot
 from hashlib import sha256
 import pyAesCrypt
 
-ctk.set_appearance_mode('dark')
+ctk.set_appearance_mode("dark")
 
 if int(platform.win32_ver()[1].split(".")[2]) <= 22621:
     ctk.set_default_color_theme("theme11.json")
 else:
     ctk.set_default_color_theme("theme10.json")
 
-VERSION = "2.0.1"
-FILE_LIMIT = 64 * 1024
+VERSION = "2.0.2"
+FILE_LIMIT = 256 * 1024 # 256 MEGABYTES
 TEXTFONT = ("Consolas", 13)
 
 HELP_STRING = """\
@@ -101,13 +101,13 @@ class Crypt:
         self.buffer_size = buffer_size * 1024
 
     def encrypt(self, file_name: str):
-        encrypted_name = file_name + ".aes"
+        encrypted_name = file_name + ".flk"
         pyAesCrypt.encryptFile(
             file_name, encrypted_name, self.password, self.buffer_size
         )
 
     def decrypt(self, file_name: str):
-        decrypted_name = file_name.removesuffix(".aes")
+        decrypted_name = file_name.removesuffix(".flk")
         pyAesCrypt.decryptFile(
             file_name, f"{decrypted_name}", self.password, self.buffer_size
         )
@@ -177,17 +177,17 @@ class FLock:
             _c = Crypt(_pwd)
             try:
                 if os.path.getsize(filepath) >= (FILE_LIMIT):
-                    messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.")
+                    messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes." )
 
                 _c.encrypt(filepath)
                 file.close()
                 os.remove(filepath)
                 messagebox.showinfo(
                     title="FLock",
-                    message=f'Encryption successful.\nThe encrypted file is "{filepath}.aes"',
+                    message=f'Encryption successful.\nThe encrypted file is "{filepath}.flk"',
                 )
             except Exception as e:
-                messagebox.showerror(title="Error", message=f"An error occured:\n{e}")
+                messagebox.showerror(title="FLock", message=f"An error occured:\n{e}")
                 return
         else:
             messagebox.showerror(
@@ -198,7 +198,7 @@ class FLock:
     def decryptfile(self):
         try:
             file = filedialog.askopenfile(
-                mode="rb+", filetypes=[("Encrypted files", "*.aes")]
+                mode="rb+", filetypes=[("Encrypted FLock files", "*.flk")]
             )
             filepath = os.path.abspath(file.name)
         except:
@@ -216,25 +216,17 @@ class FLock:
             title="Confirm encryption",
         )
         if self.confirmation_dialog.get_input() == os.path.basename(file.name):
-            if not messagebox.askyesno(
-                title="Confirm decryption",
-                message="Are you sure it's the right password and the right file?",
-            ):
+            try:
+                if os.path.getsize(filepath) >= FILE_LIMIT:
+                    messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.")
+                _c = Crypt(_pwd)
+                _c.decrypt(filepath)
+                file.close()
+                os.remove(filepath)
+                messagebox.showinfo(title="FLock", message="Decryption successful.")
+            except Exception as e:
+                messagebox.showerror(title="Error", message=f"An error occured:\n{e}")
                 return
-            else:
-                try:
-                    if os.path.getsize(filepath) >= FILE_LIMIT:
-                        messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.")
-                    _c = Crypt(_pwd)
-                    _c.decrypt(filepath)
-                    file.close()
-                    os.remove(filepath)
-                    messagebox.showinfo(title="FLock", message="Decryption successful.")
-                except Exception as e:
-                    messagebox.showerror(
-                        title="Error", message=f"An error occured:\n{e}"
-                    )
-                    return
         else:
             messagebox.showwarning(
                 title="FLock",
