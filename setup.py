@@ -12,7 +12,7 @@ l = "dist\\FLock\\_internal\\customtkinter\\assets\\icons\\CustomTkinter_icon_Wi
 
 main_command = f'pyinstaller --noconfirm --onedir --windowed --icon "{iconfile}" --name "{name}" --clean --upx-dir "{upxdir}"  "{script}"'
 iconcopy = f"xcopy {iconfile} {l} /Y"
-lice = f"xcopy LICENSE dist\\FLock /Y"
+lice = f"xcopy LICENSE dist\\{name} /Y"
 theme1 = f"xcopy theme10.json dist\\{name} /Y"
 theme2 = f"xcopy theme11.json dist\\{name} /Y"
 compiler_command = ' "C:\\Program Files (x86)\\Inno Setup 6\\iscc.exe" ' + f"/O'{name}_setup' setup.iss"

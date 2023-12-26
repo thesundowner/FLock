@@ -1,18 +1,24 @@
-import customtkinter as ctk
 from tkinter import messagebox, filedialog, StringVar, TkVersion
-import os, platform, telepot
+import customtkinter as ctk
 from hashlib import sha256
 import pyAesCrypt
+import platform
+import os 
 
 ctk.set_appearance_mode("dark")
+try:
+    if int(platform.win32_ver()[1].split(".")[2]) <= 22621:
+        ctk.set_default_color_theme("theme11.json")
+    else:
+        ctk.set_default_color_theme("theme10.json")
+except FileNotFoundError as e:
+    messagebox.showerror(title="Error",message='The theme files could not be found. The program will now exit.')
+    exit()
+# end try
 
-if int(platform.win32_ver()[1].split(".")[2]) <= 22621:
-    ctk.set_default_color_theme("theme11.json")
-else:
-    ctk.set_default_color_theme("theme10.json")
 
 VERSION = "2.0.2"
-FILE_LIMIT = 256 * 1024 # 256 MEGABYTES
+FILE_LIMIT = 256 * 1024  # 256 MEGABYTES
 TEXTFONT = ("Consolas", 13)
 
 HELP_STRING = """\
@@ -94,7 +100,7 @@ Windows {platform.win32_ver()[1]} {platform.win32_edition()}
 {platform.processor()}
 """
 
-
+# CLASS DEF FOR ENCRYPTION/DECRYPTION
 class Crypt:
     def __init__(self, password: str, buffer_size: int = 64) -> None:
         self.password = self.hash_salt(password)
@@ -152,8 +158,6 @@ class FLock:
 
         self.path_label = ctk.CTkLabel(master=self.root, textvariable=self.pathvar)
 
-    def show_size_warning():
-        pass
 
     def encryptfile(self):
         try:
@@ -177,7 +181,10 @@ class FLock:
             _c = Crypt(_pwd)
             try:
                 if os.path.getsize(filepath) >= (FILE_LIMIT):
-                    messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes." )
+                    messagebox.showwarning(
+                        title="FLock",
+                        message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.",
+                    )
 
                 _c.encrypt(filepath)
                 file.close()
@@ -218,7 +225,10 @@ class FLock:
         if self.confirmation_dialog.get_input() == os.path.basename(file.name):
             try:
                 if os.path.getsize(filepath) >= FILE_LIMIT:
-                    messagebox.showwarning(title="FLock",message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.")
+                    messagebox.showwarning(
+                        title="FLock",
+                        message="The file you requested is too large so it will take some time to encrypt/decrypt it. Do not exit the application in case its unresponsive. Please wait and do not do anything until it finishes.",
+                    )
                 _c = Crypt(_pwd)
                 _c.decrypt(filepath)
                 file.close()
